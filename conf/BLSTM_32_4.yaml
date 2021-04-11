@@ -1,0 +1,12 @@
+model:
+  name: 'model.rnn.Model'
+  args:
+    rnn_type: 'LSTM'
+    norm_rnn_hidden_size: 16
+    norm_rnn_layers: 1
+    rnn_hidden_size: 32
+    rnn_layers: 4
+    rnn_bidirectional: True
+
+gpu_ids: 7,
+checkpoint: './checkpoint/BLSTM_32_4'
