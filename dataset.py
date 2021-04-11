@@ -7,18 +7,22 @@ import soundfile as sf
 import random
 import pack_util
 
+def init_types_and_id(root_dir):
+    types = os.listdir(root_dir)
+    types = [t for t in types if not t.endswith('.list')]
+    types = sorted(types) #按字母顺序排序
+    types2id = {}
+    id2types = {}
+    for i, t in enumerate(types):
+        types2id[t] = i
+        id2types[i] = t
+    types2id['other'] = len(types)
+    id2types[len(types)] = 'other'
+    return types2id, id2types
+
 class TrainDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir):
-        types = os.listdir(root_dir)
-        types = [t for t in types if not t.endswith('.list')]
-        types = sorted(types) #按字母顺序排序
-        self.types2id = {}
-        self.id2types = {}
-        for i, t in enumerate(types):
-            self.types2id[t] = i
-            self.id2types[i] = t
-        self.types2id['other'] = len(types)
-        self.id2types[len(types)] = 'other'
+        self.types2id, self.id2types = init_types_and_id(root_dir)
         '''
         self.types2id的内容如下，按字母顺序排序
         {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Drinking, sipping': 5, 'Footsteps': 6, 'Keyboard typing': 7, 'Laughing': 8, 'Sneezing': 9, 'Snoring': 10, 'other': 11}
@@ -68,19 +72,53 @@ class TrainDataset(torch.utils.data.Dataset):
         spec_mag = np.abs(spec) #频域能量，不使用相位信息
         # print(spec_mag.shape, spec_mag[10, 0:10])
         # sf.write(f'./type{type_id}.wav', pcm_16k, 16000)
-        return spec_mag, type_id #spec_mag的shape是[431, 512]
+        return spec_mag, type_id
 
     def __len__(self):
         return len(self.waves)
 
+class DevDataset(torch.utils.data.Dataset):
+    def __init__(self, root_dir):
+        self.types2id, self.id2types = init_types_and_id(root_dir)
+        '''
+        self.types2id的内容如下，按字母顺序排序
+        {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Drinking, sipping': 5, 'Footsteps': 6, 'Keyboard typing': 7, 'Laughing': 8, 'Sneezing': 9, 'Snoring': 10, 'other': 11}
+        '''
+
+        self.root_dir = root_dir
+        with open(os.path.join(root_dir, 'dev_set.list')) as fp:
+            self.waves = fp.read().splitlines()
+    
+    def __getitem__(self, idx):
+        wave = self.waves[idx]
+        type_name = os.path.split(wave)[0]
+        type_id = self.types2id[type_name]
+        if type_name != 'other':
+            wave_path = os.path.join(self.root_dir, wave)
+            pcm, sr = sf.read(wave_path)
+            pcm_16k = librosa.resample(pcm, sr, 16000)
+
+        else: #这里加入一些不相关数据，有说话声和纯噪声
+            raise NotImplementedError()
+
+        spec = librosa.stft(pcm_16k, n_fft=1024, hop_length=512, window='hann')
+        spec = spec[1:, :].T #不使用0频率
+        spec_mag = np.abs(spec) #频域能量，不使用相位信息
+        return spec_mag, type_id
+
+    def __len__(self):
+        return len(self.waves)
+
+
 if __name__ == '__main__':
     dataset = TrainDataset('/local/data/zcs/sound_set')
+    dataset = DevDataset('/local/data/zcs/sound_set')
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=4,
         shuffle=True,
         num_workers=0)
-    # print(len(dataset))
+    print(len(dataset))
     for idx, (feature, t) in enumerate(dataloader):
         print(idx, feature.shape, t)
         if idx >= 50:
