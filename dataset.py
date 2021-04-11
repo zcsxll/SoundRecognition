@@ -67,7 +67,7 @@ class TrainDataset(torch.utils.data.Dataset):
         spec = spec[1:, :].T #不使用0频率
         spec_mag = np.abs(spec) #频域能量，不使用相位信息
         # print(spec_mag.shape, spec_mag[10, 0:10])
-        sf.write(f'./type{type_id}.wav', pcm_16k, 16000)
+        # sf.write(f'./type{type_id}.wav', pcm_16k, 16000)
         return spec_mag, type_id #spec_mag的shape是[431, 512]
 
     def __len__(self):
@@ -77,10 +77,10 @@ if __name__ == '__main__':
     dataset = TrainDataset('/local/data/zcs/sound_set')
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
-        batch_size=1,
+        batch_size=4,
         shuffle=True,
         num_workers=0)
-    print(len(dataset))
+    # print(len(dataset))
     for idx, (feature, t) in enumerate(dataloader):
         print(idx, feature.shape, t)
         if idx >= 50:
