@@ -17,6 +17,12 @@ def import_class(class_str):
     module = importlib.import_module(module_name)
     return getattr(module, class_str[-1])
 
+def accuracy(preds, types):
+    preds = torch.nn.Softmax(dim=-1)(preds)
+    preds = torch.max(preds, dim=-1).indices
+    acc = torch.mean((preds == types).float())
+    return acc.detach().cpu().numpy()
+
 def train(model,
         loss_fn,
         optimizer,
@@ -33,9 +39,10 @@ def train(model,
         types = types.cuda()
         preds = model(features)
         # print(preds, types)
+        acc = accuracy(preds, types)
         loss = loss_fn(preds, types)
         
-        pbar.set_postfix(**{'loss':loss.detach().cpu().item()})
+        pbar.set_postfix(**{'loss':loss.detach().cpu().item(), 'acc':acc})
         pbar.update()
 
         optimizer.zero_grad()
@@ -46,6 +53,7 @@ def train(model,
 
         if step % 10 == 0:
             logger.add_scalar('train/loss', loss.cpu().detach().numpy(), scheduler.gstep)
+            logger.add_scalar('train/acc', acc, scheduler.gstep)
             logger.add_scalar('train/lr', optimizer.param_groups[0]['lr'], scheduler.gstep)
     pbar.close()
 
