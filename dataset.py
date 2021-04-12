@@ -32,6 +32,14 @@ class TrainDataset(torch.utils.data.Dataset):
         with open(os.path.join(root_dir, 'train_set.list')) as fp:
             self.waves = fp.read().splitlines()
 
+        self.waves2 = {}
+        for wave in self.waves:
+            type_name = os.path.split(wave)[0]
+            if type_name not in self.waves2.keys():
+                self.waves2[type_name] = []
+            self.waves2[type_name].append(wave)
+        # print(self.waves2)
+
         n_other = int(len(self.waves) * 0.1)
         self.waves += ['other/666'] * n_other #后面的666不会被使用，随便写的
 
@@ -54,6 +62,20 @@ class TrainDataset(torch.utils.data.Dataset):
             wave_path = os.path.join(self.root_dir, wave)
             pcm, sr = sf.read(wave_path)
             pcm_16k = librosa.resample(pcm, sr, 16000)
+
+            if random.uniform(0, 1) <= 0.4:
+                same_type_waves = self.waves2[type_name]
+                wave2 = random.choice(same_type_waves)
+                wave2_path = os.path.join(self.root_dir, wave2)
+                pcm2, sr = sf.read(wave2_path)
+                pcm2_16k = librosa.resample(pcm2, sr, 16000)
+                beg = int(random.uniform(0, 0.05) * pcm_16k.shape[0])
+                length = int(random.uniform(0.4, 0.7) * pcm_16k.shape[0])
+                pcm1 = pcm_16k[beg:beg+length]
+                pcm2 = pcm2_16k[:pcm_16k.shape[0] - length]
+                # print(beg, pcm1.shape[0] + pcm2.shape[0])
+                pcm_16k = np.concatenate((pcm1, pcm2), axis=0)
+                # sf.write('./test.wav', pcm_16k, 16000)
 
             if random.uniform(0, 1) <= 0.5: #均匀分布，50%情况加噪声
                 idx_noise = random.randint(0, len(self.noise) - 1)
@@ -107,7 +129,7 @@ class DevDataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     dataset = TrainDataset('/local/data/zcs/sound_set')
-    dataset = DevDataset('/local/data/zcs/sound_set')
+    # dataset = DevDataset('/local/data/zcs/sound_set')
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=4,
@@ -116,5 +138,5 @@ if __name__ == '__main__':
     print(len(dataset))
     for idx, (feature, t) in enumerate(dataloader):
         print(idx, feature.shape, t)
-        if idx >= 0:
+        if idx >= 10:
             break
