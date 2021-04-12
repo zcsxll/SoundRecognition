@@ -11,21 +11,21 @@ def init_types_and_id(root_dir):
     types = os.listdir(root_dir)
     types = [t for t in types if not t.endswith('.list')]
     types = sorted(types) #按字母顺序排序
-    types2id = {}
-    id2types = {}
+    type2id = {}
+    id2type = {}
     for i, t in enumerate(types):
-        types2id[t] = i
-        id2types[i] = t
-    types2id['other'] = len(types)
-    id2types[len(types)] = 'other'
-    return types2id, id2types
+        type2id[t] = i
+        id2type[i] = t
+    type2id['other'] = len(types)
+    id2type[len(types)] = 'other'
+    return type2id, id2type
 
 class TrainDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir):
-        self.types2id, self.id2types = init_types_and_id(root_dir)
+        self.type2id, self.id2type = init_types_and_id(root_dir)
         '''
-        self.types2id的内容如下，按字母顺序排序
-        {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Drinking, sipping': 5, 'Footsteps': 6, 'Keyboard typing': 7, 'Laughing': 8, 'Sneezing': 9, 'Snoring': 10, 'other': 11}
+        self.type2id的内容如下，按字母顺序排序
+        {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Footsteps': 5, 'Keyboard typing': 6, 'Laughing': 7, 'Sneezing': 8, 'Snoring': 9, 'other': 10}
         '''
 
         self.root_dir = root_dir
@@ -49,7 +49,7 @@ class TrainDataset(torch.utils.data.Dataset):
     def __getitem__(self, idx):
         wave = self.waves[idx]
         type_name = os.path.split(wave)[0]
-        type_id = self.types2id[type_name]
+        type_id = self.type2id[type_name]
         if type_name != 'other':
             wave_path = os.path.join(self.root_dir, wave)
             pcm, sr = sf.read(wave_path)
@@ -80,11 +80,6 @@ class TrainDataset(torch.utils.data.Dataset):
 class DevDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir):
         self.types2id, self.id2types = init_types_and_id(root_dir)
-        '''
-        self.types2id的内容如下，按字母顺序排序
-        {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Drinking, sipping': 5, 'Footsteps': 6, 'Keyboard typing': 7, 'Laughing': 8, 'Sneezing': 9, 'Snoring': 10, 'other': 11}
-        '''
-
         self.root_dir = root_dir
         with open(os.path.join(root_dir, 'dev_set.list')) as fp:
             self.waves = fp.read().splitlines()
@@ -112,7 +107,7 @@ class DevDataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     dataset = TrainDataset('/local/data/zcs/sound_set')
-    #dataset = DevDataset('/local/data/zcs/sound_set')
+    dataset = DevDataset('/local/data/zcs/sound_set')
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=4,
