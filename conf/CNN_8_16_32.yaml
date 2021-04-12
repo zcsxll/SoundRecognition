@@ -1,0 +1,11 @@
+model:
+  name: 'model.cnn.Model'
+  args:
+    norm_rnn_hidden_size: 16
+    norm_rnn_layers: 1
+    kernel_size: [3, 3]
+    stride: [2, 2]
+    channels: [1, 8, 16, 32]
+
+gpu_ids: 2,
+checkpoint: './checkpoint/CNN_8_16_32'

@@ -67,7 +67,7 @@ class TrainDataset(torch.utils.data.Dataset):
             pcm_16k = pack_util.load_audio(self.other[idx_other], self.sess_dict, 5)
             # sf.write('./other.wav', pcm_16k, 16000)
 
-        spec = librosa.stft(pcm_16k, n_fft=1024, hop_length=512, window='hann')
+        spec = librosa.stft(pcm_16k, n_fft=1024, hop_length=512, window='hann', center=False) #center=False, 不进行padding
         spec = spec[1:, :].T #不使用0频率
         spec_mag = np.abs(spec) #频域能量，不使用相位信息
         # print(spec_mag.shape, spec_mag[10, 0:10])
@@ -101,7 +101,7 @@ class DevDataset(torch.utils.data.Dataset):
         else: #这里加入一些不相关数据，有说话声和纯噪声
             raise NotImplementedError()
 
-        spec = librosa.stft(pcm_16k, n_fft=1024, hop_length=512, window='hann')
+        spec = librosa.stft(pcm_16k, n_fft=1024, hop_length=512, window='hann', center=False)
         spec = spec[1:, :].T #不使用0频率
         spec_mag = np.abs(spec) #频域能量，不使用相位信息
         return spec_mag, type_id
@@ -112,7 +112,7 @@ class DevDataset(torch.utils.data.Dataset):
 
 if __name__ == '__main__':
     dataset = TrainDataset('/local/data/zcs/sound_set')
-    dataset = DevDataset('/local/data/zcs/sound_set')
+    #dataset = DevDataset('/local/data/zcs/sound_set')
     dataloader = torch.utils.data.DataLoader(
         dataset=dataset,
         batch_size=4,
@@ -121,5 +121,5 @@ if __name__ == '__main__':
     print(len(dataset))
     for idx, (feature, t) in enumerate(dataloader):
         print(idx, feature.shape, t)
-        if idx >= 50:
+        if idx >= 0:
             break
