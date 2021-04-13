@@ -16,16 +16,18 @@ def init_types_and_id(root_dir):
     for i, t in enumerate(types):
         type2id[t] = i
         id2type[i] = t
-    type2id['other'] = len(types)
-    id2type[len(types)] = 'other'
+    type2id['Other'] = len(types)
+    id2type[len(types)] = 'Other'
     return type2id, id2type
 
 class TrainDataset(torch.utils.data.Dataset):
     def __init__(self, root_dir):
         self.type2id, self.id2type = init_types_and_id(root_dir)
+        # print(self.type2id)
         '''
         self.type2id的内容如下，按字母顺序排序
-        {'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Footsteps': 5, 'Keyboard typing': 6, 'Laughing': 7, 'Sneezing': 8, 'Snoring': 9, 'other': 10}
+        11类：{'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Footsteps': 5, 'Keyboard typing': 6, 'Laughing': 7, 'Sneezing': 8, 'Snoring': 9, 'Other': 10}
+         6类：{'Breath': 0, 'Brushing teeth': 1, 'Clapping': 2, 'Coughing': 3, 'Door knock': 4, 'Keyboard typing': 5, 'Other': 6}
         '''
 
         self.root_dir = root_dir
@@ -40,8 +42,8 @@ class TrainDataset(torch.utils.data.Dataset):
             self.waves2[type_name].append(wave)
         # print(self.waves2)
 
-        n_other = int(len(self.waves) * 0.1)
-        self.waves += ['other/666'] * n_other #后面的666不会被使用，随便写的
+        n_other = int(len(self.waves) * 0.15) #让各个类别比例相似
+        self.waves += ['Other/666'] * n_other #后面的666不会被使用，随便写的
 
         noise_list = ['/local/data/wind-noise-record.lmdb']
         _, self.noise = pack_util.get_total(noise_list, keep_struct=False)
@@ -58,7 +60,7 @@ class TrainDataset(torch.utils.data.Dataset):
         wave = self.waves[idx]
         type_name = os.path.split(wave)[0]
         type_id = self.type2id[type_name]
-        if type_name != 'other':
+        if type_name != 'Other':
             wave_path = os.path.join(self.root_dir, wave)
             pcm, sr = sf.read(wave_path)
             pcm_16k = librosa.resample(pcm, sr, 16000)
@@ -110,7 +112,7 @@ class DevDataset(torch.utils.data.Dataset):
         wave = self.waves[idx]
         type_name = os.path.split(wave)[0]
         type_id = self.types2id[type_name]
-        if type_name != 'other':
+        if type_name != 'Other':
             wave_path = os.path.join(self.root_dir, wave)
             pcm, sr = sf.read(wave_path)
             pcm_16k = librosa.resample(pcm, sr, 16000)

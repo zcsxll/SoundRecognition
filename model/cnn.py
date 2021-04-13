@@ -49,7 +49,7 @@ class Model(torch.nn.Module):
             self.cnns.append(torch.nn.Sequential(*layers))
 
         self.ada_max_pool = torch.nn.AdaptiveMaxPool2d(output_size=[1, 1])
-        self.fc_out = torch.nn.Linear(in_features=channels[-1], out_features=11)
+        self.fc_out = torch.nn.Linear(in_features=channels[-1], out_features=7)
 
     def forward(self, feature):
         mean, logstd = self.norm_net(feature).chunk(2, dim=-1)
