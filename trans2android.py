@@ -32,4 +32,4 @@ if __name__ == '__main__':
     print(torch.__version__)
     # assert len(sys.argv) == 3
     # main(sys.argv[1], int(sys.argv[2]))
-    trans('./conf/CNN_16x3_32.yaml', 216)
+    trans('./conf/CNN_16x3_32.yaml', 69)
