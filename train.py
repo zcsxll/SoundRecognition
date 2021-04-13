@@ -128,4 +128,4 @@ def main(conf):
 if __name__ == '__main__':
     assert len(sys.argv) == 2
     main(sys.argv[1])
-    # main('./conf/LSTM_128_4.yaml')
+    # main('./conf/CNN_16x3_32.yaml')

@@ -42,7 +42,7 @@ class TrainDataset(torch.utils.data.Dataset):
             self.waves2[type_name].append(wave)
         # print(self.waves2)
 
-        n_other = int(len(self.waves) * 0.15) #让各个类别比例相似
+        n_other = int(len(self.waves) * 0.16) #让各个类别比例相似，避免最后一个batch只有一个就行
         self.waves += ['Other/666'] * n_other #后面的666不会被使用，随便写的
 
         noise_list = ['/local/data/wind-noise-record.lmdb']
