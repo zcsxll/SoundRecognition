@@ -56,7 +56,7 @@ class Model(torch.nn.Module):
             core_size = rnn_hidden_size
         self.out1 = torch.nn.Linear(in_features=core_size, out_features=1)
         self.elu1 = torch.nn.ELU()
-        self.out2 = torch.nn.Linear(in_features=157, out_features=12)
+        self.out2 = torch.nn.Linear(in_features=155, out_features=7)
 
     def forward(self, feature):
         mean, logstd = self.norm_net(feature).chunk(2, dim=-1)
